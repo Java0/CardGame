@@ -17,6 +17,7 @@ public class CardGame {
 
     public void run(int gameType) {
 
+        //初始化牌组
         Pokers.addCardToPool(gameType);
 
         //玩家加入
@@ -61,9 +62,10 @@ public class CardGame {
         Pokers.dealCards(players, cardPool, players.get(ownerIndex));
 
         //看牌
-        Pokers.disPlayCard(players);
-        int index = ownerIndex;
+        Pokers.displayCard(players);
 
+        //轮流出牌
+        int index = ownerIndex;
         while (!isEnd) {
             if (index > players.size()-1) {
                 index = index - players.size();
@@ -74,7 +76,7 @@ public class CardGame {
                 index++;
             }
 
-            Pokers.disPlayCard(players);
+            Pokers.displayCard(players);
 
             if (currentPlayer.getHands().isEmpty()) {
                 isEnd = true;

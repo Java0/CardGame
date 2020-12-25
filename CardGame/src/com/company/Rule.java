@@ -1,7 +1,6 @@
 package com.company;
 
 import com.company.card.Poker;
-import com.company.card.Pokers;
 
 import java.util.*;
 
@@ -24,8 +23,8 @@ public class Rule {
 
 
     public Rule(ArrayList<Poker> inputPokers) {
-        ArrayList<Poker> oneTypePokerList = Pokers.getOneTypePokerList(inputPokers);
-        Map<Poker, Integer> repeatPokerMap = Pokers.getRepeatPokerMap(inputPokers);
+        ArrayList<Poker> oneTypePokerList = getOneTypePokerList(inputPokers);
+        Map<Poker, Integer> repeatPokerMap = getRepeatPokerMap(inputPokers);
         switch (inputPokers.size()) {
             case 1:
                 this.power = inputPokers.get(0).getPower();
@@ -63,8 +62,10 @@ public class Rule {
                     setRule("顺子");
                 } else if (isDoubleStraight(oneTypePokerList, repeatPokerMap)) {
                     setRule("连对");
-                }else if(isPlane(oneTypePokerList,repeatPokerMap)){
+                } else if (isPlane(oneTypePokerList, repeatPokerMap)) {
                     setRule("飞机");
+                } else if (isAAAABB(oneTypePokerList, repeatPokerMap)) {
+                    setRule("4带2");
                 }
 
                 break;
@@ -86,27 +87,56 @@ public class Rule {
     }
 
     private boolean isAAAB(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
-        if (oneTypePokerList.size() == 2) {
-            for (Poker poker : oneTypePokerList) {
-                if (repeatPokerMap.get(poker) == 3) {
-                    this.power = poker.getPower() * 3;
-                    return true;
-                }
-            }
+        if (oneTypePokerList.size() == 2 && isThreeRepeat(oneTypePokerList, repeatPokerMap)) {
+            return true;
         }
         return false;
     }
 
     private boolean isAAABB(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
-        if (oneTypePokerList.size() == 2) {
+        if (oneTypePokerList.size() == 2 && isThreeRepeat(oneTypePokerList, repeatPokerMap)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isThreeRepeat(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
+        boolean b = false;
+        for (Poker poker : oneTypePokerList) {
+            if (repeatPokerMap.get(poker) == 3) {
+                b = true;
+            }else {
+                b = false;
+            }
+        }
+
+        this.power = oneTypePokerList.get(0).getPower() * 3;
+
+        return b;
+    }
+
+
+    private boolean isAAAABB(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
+
+        ArrayList<Poker> fourCountList = new ArrayList<>();
+
+        if (oneTypePokerList.size() <= 3) {
             for (Poker poker : oneTypePokerList) {
-                if (repeatPokerMap.get(poker) == 3) {
-                    this.power = poker.getPower() * 3;
+                if (repeatPokerMap.get(poker) == 4) {
+                    fourCountList.add(poker);
+                }
+
+                if (fourCountList.size() == 1) {
+                    this.power = fourCountList.get(0).getPower() * 4;
                     return true;
                 }
             }
+        } else {
+            return false;
         }
+
         return false;
+
     }
 
 
@@ -133,7 +163,7 @@ public class Rule {
             this.power = temp.getPower();
 
             for (int i = 1; i < oneTypePokerList.size(); i++) {
-                if (repeatPokerMap.get(oneTypePokerList.get(i)) == 1 && Pokers.isSerialNumber(temp, oneTypePokerList.get(i))) {
+                if (repeatPokerMap.get(oneTypePokerList.get(i)) == 1 && isSerialNumber(temp, oneTypePokerList.get(i))) {
                     temp = oneTypePokerList.get(i);
                     this.power = this.power + oneTypePokerList.get(i).getPower();
                 } else {
@@ -161,7 +191,7 @@ public class Rule {
 
             for (int i = 1; i < oneTypePokerList.size(); i++) {
 
-                if (repeatPokerMap.get(oneTypePokerList.get(i)) == 2 && Pokers.isSerialNumber(temp, oneTypePokerList.get(i))) {
+                if (repeatPokerMap.get(oneTypePokerList.get(i)) == 2 && isSerialNumber(temp, oneTypePokerList.get(i))) {
                     temp = oneTypePokerList.get(i);
                     this.power = this.power + (oneTypePokerList.get(i).getPower() * 2);
                 } else {
@@ -180,58 +210,40 @@ public class Rule {
         return true;
     }
 
+
+    public int getWingCount() {
+        return wingCount;
+    }
+
+    private int wingCount = 0;
+
     private boolean isPlane(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
 
         int size = oneTypePokerList.size();
 
-        ArrayList<Poker> ThreeCountList = new ArrayList<>();
+        ArrayList<Poker> threeCountList = new ArrayList<>();
         ArrayList<Poker> xCountList = new ArrayList<>();
 
 
         if (size >= 3) {
 
             if (size == 3) {
+
                 for (Poker poker : oneTypePokerList) {
                     if (repeatPokerMap.get(poker) == 3) {
-                        ThreeCountList.add(poker);
+                        threeCountList.add(poker);
                     } else {
                         xCountList.add(poker);
                     }
                 }
 
-                if (ThreeCountList.size() >= 2) {
+                if (threeCountList.size() >= 2) {
 
-                    if (ThreeCountList.size() == 3) {
-
-                        Poker temp = ThreeCountList.get(0);
-                        this.power = temp.getPower() * 3;
-
-                        for (int i = 1; i < ThreeCountList.size(); i++) {
-                            if (Pokers.isSerialNumber(temp, ThreeCountList.get(i))) {
-                                temp = ThreeCountList.get(i);
-                                this.power = this.power + (ThreeCountList.get(i).getPower() * 3);
-                                this.straightLength++;
-                            } else {
-                                this.straightLength = 0;
-                                return false;
-                            }
-                        }
+                    if (threeCountList.size() == 3 && isAllSerial(threeCountList)) {
+                        return true;
                     } else {
-                        Poker temp = ThreeCountList.get(0);
-                        this.power = temp.getPower() * 3;
-
-                        for (int i = 1; i < ThreeCountList.size(); i++) {
-                            if (Pokers.isSerialNumber(temp, ThreeCountList.get(i)) && (repeatPokerMap.get(xCountList.get(0)) == 2 || repeatPokerMap.get(xCountList.get(0)) == 4)) {
-                                temp = ThreeCountList.get(i);
-                                this.power = this.power + (ThreeCountList.get(i).getPower() * 3);
-                                this.straightLength++;
-                            } else {
-                                this.straightLength = 0;
-                                return false;
-                            }
-                        }
+                        return isAllSerial(threeCountList) && (repeatPokerMap.get(xCountList.get(0)) == 2 || repeatPokerMap.get(xCountList.get(0)) == 4);
                     }
-
 
                 }
 
@@ -239,55 +251,26 @@ public class Rule {
 
                 for (Poker poker : oneTypePokerList) {
                     if (repeatPokerMap.get(poker) == 3) {
-                        ThreeCountList.add(poker);
+                        threeCountList.add(poker);
                     } else {
                         xCountList.add(poker);
                     }
                 }
 
-                if (xCountList.size() != 0 && ThreeCountList.size()==xCountList.size()) {
-
-                    Poker temp = ThreeCountList.get(0);
-                    this.power = temp.getPower() * 3;
-
-                    for (int i = 1; i < ThreeCountList.size(); i++) {
-                        if (Pokers.isSerialNumber(temp, ThreeCountList.get(i))) {
-                            temp = ThreeCountList.get(i);
-                            this.power = this.power + (ThreeCountList.get(i).getPower() * 3);
-                            this.straightLength++;
-                        } else {
-                            this.straightLength = 0;
-                            return false;
+                if (xCountList.size() != 0 && threeCountList.size() == xCountList.size()) {
+                    if (isAllSerial(threeCountList)) {
+                        int count = repeatPokerMap.get(xCountList.get(0));
+                        for (int i = 1; i < xCountList.size(); i++) {
+                            Poker poker = xCountList.get(i);
+                            if (repeatPokerMap.get(poker) == count) {
+                                count = repeatPokerMap.get(poker);
+                                wingCount = count;
+                                return true;
+                            }
                         }
                     }
-
-                    int count = repeatPokerMap.get(xCountList.get(0));
-                    for (int i = 1; i < xCountList.size(); i++) {
-                        Poker poker = xCountList.get(i);
-                        if(repeatPokerMap.get(poker) == count){
-                            count = repeatPokerMap.get(poker);
-                        }else {
-                            return false;
-                        }
-                    }
-
-                }else if(xCountList.size() == 0){
-
-                    Poker temp = ThreeCountList.get(0);
-                    this.power = temp.getPower() * 3;
-
-                    for (int i = 1; i < ThreeCountList.size(); i++) {
-                        if (Pokers.isSerialNumber(temp, ThreeCountList.get(i))) {
-                            temp = ThreeCountList.get(i);
-                            this.power = this.power + (ThreeCountList.get(i).getPower() * 3);
-                            this.straightLength++;
-                        } else {
-                            this.straightLength = 0;
-                            return false;
-                        }
-                    }
-                }else {
-                    return false;
+                } else if (xCountList.size() == 0) {
+                    return isAllSerial(threeCountList);
                 }
 
             }
@@ -296,10 +279,77 @@ public class Rule {
             return false;
         }
 
+        return false;
+    }
+
+    private static boolean isSame(Poker last, Poker next) {
+
+        return last.equals(next);
+    }
+
+    public static boolean isSerialNumber(Poker last, Poker next) {
+
+        return next.getPower() - last.getPower() == 1;
+    }
+
+    public boolean isAllSerial(ArrayList<Poker> pokers) {
+        Poker temp = pokers.get(0);
+        this.power = temp.getPower() * 3;
+
+        for (int i = 1; i < pokers.size(); i++) {
+            if (isSerialNumber(temp, pokers.get(i))) {
+                temp = pokers.get(i);
+                this.power = this.power + (pokers.get(i).getPower() * 3);
+                this.straightLength++;
+            } else {
+                this.straightLength = 0;
+                return false;
+            }
+        }
 
         return true;
     }
 
+
+    private ArrayList<Poker> getOneTypePokerList(ArrayList<Poker> inputPokers) {
+        Poker temp = inputPokers.get(0);
+        ArrayList<Poker> list = new ArrayList<>();
+        if (inputPokers.size() > 1) {
+            for (int i = 1; i < inputPokers.size(); i++) {
+                if (!isSame(temp, inputPokers.get(i))) {
+                    list.add(temp);
+                    temp = inputPokers.get(i);
+                }
+            }
+        }
+        list.add(temp);
+        return list;
+
+    }
+
+    private Map<Poker, Integer> getRepeatPokerMap(ArrayList<Poker> inputPokers) {
+        Map<Poker, Integer> map = new HashMap<>();
+
+        Poker temp = inputPokers.get(0);
+        int count = 1;
+
+        if (inputPokers.size() <= 1) {
+            map.put(temp, 1);
+        } else {
+            for (int i = 1; i < inputPokers.size(); i++) {
+                if (isSame(temp, inputPokers.get(i))) {
+                    count++;
+                } else {
+                    map.put(temp, count);
+                    temp = inputPokers.get(i);
+                    count = 1;
+                }
+                map.put(temp, count);
+            }
+        }
+        return map;
+
+    }
 
     private boolean notContainsUselessPoker(ArrayList<Poker> pokerList) {
 
@@ -340,11 +390,10 @@ public class Rule {
             } else if ("连对".equals(lastRule.rule)) {
                 return meetTheBasiConditions(lastRule) && this.getStraightLength() == lastRule.getStraightLength();
             } else if ("飞机".equals(lastRule.rule)) {
-                return meetTheBasiConditions(lastRule) && this.getStraightLength() == lastRule.getStraightLength();
-            }else {
+                return meetTheBasiConditions(lastRule) && this.getStraightLength() == lastRule.getStraightLength() && this.getWingCount() == lastRule.getWingCount();
+            } else {
                 return meetTheBasiConditions(lastRule);
             }
-
 
 
         } else {
