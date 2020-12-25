@@ -87,17 +87,39 @@ public class Rule {
     }
 
     private boolean isAAAB(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
+<<<<<<< HEAD
         return oneTypePokerList.size() == 2 && isThreeRepeat(oneTypePokerList, repeatPokerMap);
     }
 
     private boolean isAAABB(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
         return oneTypePokerList.size() == 2 && isThreeRepeat(oneTypePokerList, repeatPokerMap);
+=======
+        if (oneTypePokerList.size() == 2 && isThreeRepeat(oneTypePokerList, repeatPokerMap)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isAAABB(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
+        if (oneTypePokerList.size() == 2 && isThreeRepeat(oneTypePokerList, repeatPokerMap)) {
+            return true;
+        }
+        return false;
+>>>>>>> 7ff523b383703cb18bf63d363243ec4adc4778bf
     }
 
     private boolean isThreeRepeat(ArrayList<Poker> oneTypePokerList, Map<Poker, Integer> repeatPokerMap) {
         boolean b = false;
         for (Poker poker : oneTypePokerList) {
+<<<<<<< HEAD
             b = repeatPokerMap.get(poker) == 3;
+=======
+            if (repeatPokerMap.get(poker) == 3) {
+                b = true;
+            }else {
+                b = false;
+            }
+>>>>>>> 7ff523b383703cb18bf63d363243ec4adc4778bf
         }
 
         this.power = oneTypePokerList.get(0).getPower() * 3;

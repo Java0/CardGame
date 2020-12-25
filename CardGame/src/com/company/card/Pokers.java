@@ -137,7 +137,6 @@ public class Pokers {
         }
     }
 
-
     private static Rule lastRule;
 
     private static int passCount;
@@ -178,48 +177,51 @@ public class Pokers {
             boolean havePokers = true;
 
             ArrayList<Poker> playerHands = (ArrayList<Poker>) you.getHands().clone();
+            if (outPokers != null) {
 
-            for (Poker outPoker : outPokers) {
-                if (!playerHands.remove(outPoker)) {
-                    havePokers = false;
-                    break;
+                for (Poker outPoker : outPokers) {
+                    if (!playerHands.remove(outPoker)) {
+                        havePokers = false;
+                        break;
+                    }
                 }
-            }
 
-            if (havePokers) {
-                Rule currentRule = new Rule(outPokers);
-                //如果符合规则
-                if (currentRule.meetConditions(lastRule)) {
-                    passCount = 0;
+                if (havePokers) {
+                    Rule currentRule = new Rule(outPokers);
+                    //如果符合规则
+                    if (currentRule.meetConditions(lastRule)) {
+                        passCount = 0;
 
-                    canNext = true;
+                        canNext = true;
 
-                    lastRule = currentRule;
-                    
-                    you.setHands(playerHands);
+                        lastRule = currentRule;
 
-                    //显示已出的牌
-                    for (Poker poker : outPokers) {
-                        if (poker.getMark() != 'I') {
-                            System.out.print(poker.getMark() + " ");
-                        } else {
-                            System.out.print(10 + " ");
+                        you.setHands(playerHands);
+
+
+                        //显示已出的牌
+                        for (Poker poker : outPokers) {
+                            if (poker.getMark() != 'I') {
+                                System.out.print(poker.getMark() + " ");
+                            } else {
+                                System.out.print(10 + " ");
+                            }
                         }
+
+                    } else {
+                        System.out.println("\n请按规则出牌");
+                        canNext = false;
                     }
 
                 } else {
-                    System.out.println("\n请按规则出牌");
                     canNext = false;
+                    System.out.println("\n您无此牌");
                 }
 
             } else {
-                canNext = false;
-                System.out.println("\n您无此牌");
+                System.out.println("你丫出的是牌吗?");
             }
 
-        } else {
-            System.out.println("你丫出的是牌吗?");
         }
-
     }
 }
