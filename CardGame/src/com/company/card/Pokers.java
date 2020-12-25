@@ -89,22 +89,22 @@ public class Pokers {
         ArrayList<Poker> tempList = new ArrayList<>();
         int timer = 0;
 
-        for (int i = 0; i < inputChars.length; i++) {
+        for (char inputChar : inputChars) {
             for (int j = 0; j < symbolsList.length; j++) {
-                if (inputChars[i] == symbolsList[j]) {
+                if (inputChar == symbolsList[j]) {
                     timer++;
-                    tempList.add(new Poker(inputChars[i], j));
+                    tempList.add(new Poker(inputChar, j));
                 }
             }
 
-            if (inputChars[i] == '鬼') {
+            if (inputChar == '鬼') {
                 timer++;
-                tempList.add(new Poker(inputChars[i], 13));
+                tempList.add(new Poker(inputChar, 13));
             }
 
-            if (inputChars[i] == '王') {
+            if (inputChar == '王') {
                 timer++;
-                tempList.add(new Poker(inputChars[i], 14));
+                tempList.add(new Poker(inputChar, 14));
             }
 
         }
@@ -116,7 +116,7 @@ public class Pokers {
         }
     }
 
-    public static void disPlayCard(ArrayList<Player> players) {
+    public static void displayCard(ArrayList<Player> players) {
         for (Player p : players) {
 
             Collections.sort(p.getHands(), (p1, p2) -> p1.getPower() - p2.getPower());
@@ -137,62 +137,10 @@ public class Pokers {
         }
     }
 
-    public static boolean isSame(Poker last, Poker next) {
-
-        return last.equals(next);
-    }
-
-    public static boolean isSerialNumber(Poker last, Poker next) {
-
-        return next.getPower() - last.getPower() == 1;
-    }
-
-    public static ArrayList<Poker> getOneTypePokerList(ArrayList<Poker> inputPokers) {
-        Poker temp = inputPokers.get(0);
-        ArrayList<Poker> list = new ArrayList<>();
-        if (inputPokers.size() > 1) {
-            for (int i = 1; i < inputPokers.size(); i++) {
-                if (!isSame(temp, inputPokers.get(i))) {
-                    list.add(temp);
-                    temp = inputPokers.get(i);
-                }
-            }
-        }
-        list.add(temp);
-        return list;
-
-    }
-
-    public static Map<Poker, Integer> getRepeatPokerMap(ArrayList<Poker> inputPokers) {
-        Map<Poker, Integer> map = new HashMap<>();
-
-        Poker temp = inputPokers.get(0);
-        int count = 1;
-
-        if (inputPokers.size() <= 1) {
-            map.put(temp, 1);
-        } else {
-            for (int i = 1; i < inputPokers.size(); i++) {
-                if (isSame(temp, inputPokers.get(i))) {
-                    count++;
-                } else {
-                    map.put(temp, count);
-                    temp = inputPokers.get(i);
-                    count = 1;
-                }
-                map.put(temp, count);
-            }
-        }
-        return map;
-
-    }
-
 
     private static Rule lastRule;
 
     private static int passCount;
-
-    private static String playerOut;
 
     public static void playCard(Player you) {
 
@@ -200,7 +148,7 @@ public class Pokers {
 
         System.out.println("\n\n你是" + you.getName() + ",请开始你的表演");
 
-        playerOut = sc.next();
+        String playerOut = sc.next();
 
         if (playerOut.contains("10")) {
             playerOut = playerOut.replace("10", "I");
@@ -210,10 +158,9 @@ public class Pokers {
 
         char[] outChars = playerOut.toCharArray();
 
+        ArrayList<Poker> outPokers = Pokers.charToCard(Pokers.simpleSymbols, outChars);
 
         //出牌
-
-
         if ("PASS".equals(playerOut)) {
             passCount++;
             canNext = true;
@@ -221,69 +168,58 @@ public class Pokers {
             if (passCount == 2) {
                 lastRule = null;
             }
-        } else {
-            passCount = 0;
+        } else if (outPokers != null) {
 
-            ArrayList<Poker> outPokers = Pokers.charToCard(Pokers.simpleSymbols, outChars);
+            //将出的牌从小到大排序
+            Collections.sort(outPokers, (p1, p2) -> p1.getPower() - p2.getPower());
 
+            //如果出的牌和手里的牌相同，判断规则后出牌
 
+            boolean havePokers = true;
 
-            if (outPokers != null) {
+            ArrayList<Poker> playerHands = (ArrayList<Poker>) you.getHands().clone();
 
-                //将出的牌从小到大排序
-                Collections.sort(outPokers, (p1, p2) -> p1.getPower() - p2.getPower());
-
-                //如果出的牌和手里的牌相同，判断规则后出牌
-
-                boolean havePokers = true;
-
-                ArrayList<Poker> playerHands = (ArrayList<Poker>)you.getHands().clone();
-
-                for (Poker outPoker : outPokers) {
-                    if (!playerHands.remove(outPoker)) {
-                        havePokers = false;
-                        break;
-                    }
+            for (Poker outPoker : outPokers) {
+                if (!playerHands.remove(outPoker)) {
+                    havePokers = false;
+                    break;
                 }
+            }
 
-                if (havePokers) {
-                    Rule currentRule = new Rule(outPokers);
-                    //如果符合规则
-                    if (currentRule.meetConditions(lastRule)) {
-                        canNext = true;
-                        lastRule = currentRule;
-                        you.setHands(playerHands);
+            if (havePokers) {
+                Rule currentRule = new Rule(outPokers);
+                //如果符合规则
+                if (currentRule.meetConditions(lastRule)) {
+                    passCount = 0;
 
-                        //显示已出的牌
-                        for (Poker poker : outPokers) {
-                            if (poker.getMark() != 'I') {
-                                System.out.print(poker.getMark() + " ");
-                            } else {
-                                System.out.print(10 + " ");
-                            }
+                    canNext = true;
+
+                    lastRule = currentRule;
+                    
+                    you.setHands(playerHands);
+
+                    //显示已出的牌
+                    for (Poker poker : outPokers) {
+                        if (poker.getMark() != 'I') {
+                            System.out.print(poker.getMark() + " ");
+                        } else {
+                            System.out.print(10 + " ");
                         }
-
-                    } else {
-                        System.out.println("\n请按规则出牌");
-                        canNext = false;
                     }
 
                 } else {
+                    System.out.println("\n请按规则出牌");
                     canNext = false;
-                    System.out.println("\n您无此牌");
                 }
 
-
-
             } else {
-                System.out.println("你丫出的是牌吗?");
+                canNext = false;
+                System.out.println("\n您无此牌");
             }
 
-
+        } else {
+            System.out.println("你丫出的是牌吗?");
         }
 
-
     }
-
-
 }
